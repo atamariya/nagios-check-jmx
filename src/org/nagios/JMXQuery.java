@@ -150,37 +150,49 @@ public class JMXQuery {
       out.print(OK_STRING+" ");
     }
 
+    // Store the metric in data variable. It will be used for perfdata also.
+    StringBuilder data = new StringBuilder();
     if(infoData==null || verbatim>=2){
-      if(attribute_key!=null)
-        out.print(attribute+'.'+attribute_key+'='+checkData);
-      else
-        out.print(attribute+'='+checkData);
+    	data.append(attribute);
+    	if(attribute_key!=null) {
+    		data.append(".").append(attribute_key);
+    	}
+    	data.append("=").append(checkData);
     }
+    out.print(data);
 
     if(infoData!=null){
+    	// Composite data will ALSO contain the metric. So discard the previous one.
+    	data.setLength(0);
       if(infoData instanceof CompositeDataSupport)
-        report((CompositeDataSupport)infoData, out);
+        data.append(report((CompositeDataSupport)infoData, out));
       else
-        out.print(infoData.toString());
+    	data.append(infoData.toString());
     }
+    
+    // Add perfdata
+    out.print(" | ");
+    out.print(data);
 
     out.println();
     return status;
   }
 
-  private void report(CompositeDataSupport data, PrintStream out) {
+  private String report(CompositeDataSupport data, PrintStream out) {
     CompositeType type = data.getCompositeType();
     out.print('{');
+    StringBuilder str = new StringBuilder(); 
     for(Iterator it = type.keySet().iterator();it.hasNext();){
       String key = (String) it.next();
       if(data.containsKey(key))
-        out.print(key+'='+data.get(key));
+    	  str.append(key).append("=").append(data.get(key));
       if(it.hasNext())
-        out.print(';');
+    	  str.append("; ");
     }
+    out.print(str);
     out.print('}');
+    return str.toString();
   }
-
 
   private boolean compare(long level, boolean more) {
     if(more)
