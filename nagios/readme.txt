@@ -41,4 +41,3 @@ JMX OK HeapMemoryUsage=7715400{committed=12337152;init=0;max=66650112;used=77154
 
 To see available options use
 /usr/lib/nagios/plugins/check_jmx -help
-

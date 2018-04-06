@@ -122,10 +122,8 @@ public class JMXQuery {
       out.print(ex.getMessage()+" connecting to "+object+" by URL "+url);
     }
 
-
     if(verbatim>=3)
       ex.printStackTrace(out);
-
   }
 
 
@@ -203,12 +201,15 @@ public class JMXQuery {
 
 
   private void execute() throws Exception{
+    Object objData = null;
     Object attr = connection.getAttribute(new ObjectName(object), attribute);
+
     if(attr instanceof CompositeDataSupport){
       CompositeDataSupport cds = (CompositeDataSupport) attr;
       if(attribute_key==null)
         throw new ParseError("Attribute key is null for composed data "+object);
-      checkData = parseData(cds.get(attribute_key));
+      objData = cds.get(attribute_key);
+      checkData = parseData(objData);
     } else if (attr instanceof Set) {
       Set set = (Set) attr;
       checkData = set.size();
@@ -221,6 +222,11 @@ public class JMXQuery {
     } else if (attr instanceof Object[]) {
       Object[] objects = (Object[]) attr;
       checkData = Arrays.asList(objects).size();
+    } else if (attr instanceof String) {
+      String sTemp = (String) attr;
+
+      checkData = parseData(attr);
+      infoData = sTemp;
     } else{
       checkData = parseData(attr);
     }
@@ -236,17 +242,23 @@ public class JMXQuery {
         infoData = info_attr;
       }
     }
-
   }
 
-  private long parseData(Object o) {
 
+  private long parseData(Object o) {
     if (o instanceof Number) {
       return ((Number)o).longValue();
     }
     else if (o instanceof Boolean) {
       boolean b = ((Boolean)o).booleanValue();
       return b ? 1 : 0;
+    }
+    else if (o instanceof String) {
+      String sTemp = (String) o;
+      if (sTemp.startsWith("OK")) return RETURN_OK;
+      else if (sTemp.startsWith("WARN")) return RETURN_WARNING;
+      else if (sTemp.startsWith("ERROR")) return RETURN_CRITICAL;
+      else return RETURN_UNKNOWN;
     }
     else {
       return Long.parseLong(o.toString());
@@ -288,13 +300,17 @@ public class JMXQuery {
         }
       }
 
-      if(url==null || object==null || attribute==null)
-        throw new Exception("Required options not specified");
+      if (url==null) {
+        throw new Exception("Required options [URL] not specified!");
+      } else if (object==null) {
+        throw new Exception("Required options [Object] not specified!");
+      } else if (attribute==null) {
+        throw new Exception("Required options [Attribute] not specified!");
+      }
 
     }catch(Exception e){
       throw new ParseError(e);
     }
-
   }
 
 
@@ -318,7 +334,4 @@ public class JMXQuery {
       }
     }
   }
-
-
-
 }
