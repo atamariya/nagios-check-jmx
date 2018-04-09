@@ -9,7 +9,7 @@
 			Adam Serediuk <serediuk@gmail.com>
 
 29 Jun, 2009, ver.1.0 - Added support for username/password authentication via new -u and -p options.
-			Added support for boolean variables.  (Booleans will now get converted to an integer 1 or 0, so that they can be checked by Nagios.)  
+			Added support for boolean variables.  (Booleans will now get converted to an integer 1 or 0, so that they can be checked by Nagios.)
 			David Rosenstrauch <darose@darose.net>
 
 06 Apr, 2018, ver.1.1 - Added support for getting result (directly) from Bean Attribute of String type.

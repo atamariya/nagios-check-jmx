@@ -10,7 +10,7 @@ the host/port you setup in your Java process.
 
 Some examples are:
 * standard Java JMX implementation exposes memory, threads, OS, garbage collector parameters
-* Tomcat exposes multiple parameters - requests, processing time, threads, etc..
+* Tomcat exposes multiple parameters - requests, processing time, threads, etc ..
 * spring framework allows to expose Java beans parameters to JMX
 * your application may expose any attributes for JMX by declaration or explicitly.
 * can monitor localhost or remote processes
