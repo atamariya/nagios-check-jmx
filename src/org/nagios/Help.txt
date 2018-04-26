@@ -1,4 +1,5 @@
-Usage: check_jmx -U url -O object_name -A attribute [-K compound_key] [-I attribute_info] [-J attribute_info_key] [-u username] [-p password] -w warn_limit -c crit_limit [-v[vvv]] [-help]
+Usage with attribute: check_jmx -U url -O object_name -A attribute [-K compound_key] [-I attribute_info] [-J attribute_info_key] [-u username] [-p password] -w warn_limit -c crit_limit [-v[vvv]] [-help]
+Usage with operation: check_jmx -U url -O object_name -Oper operation [-P parameters] [-D delimiter] [-K compound_key] [-I attribute_info] [-J attribute_info_key] [-u username] [-p password] -w warn_limit -c crit_limit [-v[vvv]] [-help]
 
 , where options are:
 
@@ -11,8 +12,17 @@ Usage: check_jmx -U url -O object_name -A attribute [-K compound_key] [-I attrib
 -O
     Object name to be checked, for example, "java.lang:type=Memory"
 
+-Oper
+  Operation of the object to be checked, for example, "NonHeapMemoryUsage". May only use operation or attribute, not both
+
+-P
+    Parameters to be passed to -Oper Operation. A String, for example: "abc;123;def"
+
+-D
+    Delimiter regExpression to split -P parameters. Defaults to ";".
+
 -A
-  Attribute of the object to be checked, for example, "NonHeapMemoryUsage"
+  Attribute of the object to be checked, for example, "NonHeapMemoryUsage". May only use operation or attribute, not both
 
 -K
     Attribute key for -A attribute compound data, for example, "used" (optional)
