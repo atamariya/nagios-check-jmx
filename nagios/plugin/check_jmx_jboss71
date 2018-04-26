@@ -1,0 +1,6 @@
+#!/bin/sh
+#
+# Nagios plugin to monitor Java JMX (http://java.sun.com/jmx)attributes.
+#
+RDIR=`dirname $0`
+java -cp $RDIR/jboss-client-7.1.0.Final.jar:$RDIR/jmxquery.jar org.nagios.JMXQuery "$@"

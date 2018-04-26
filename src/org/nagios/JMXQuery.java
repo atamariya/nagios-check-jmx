@@ -35,6 +35,9 @@ public class JMXQuery {
   private JMXConnector connector;
   private MBeanServerConnection connection;
   private long warning, critical;
+  private String operation;
+  private Object[] parameters;
+  private String delimiter = ";";
   private String attribute, info_attribute;
   private String attribute_key, info_key;
   private String username, password;
@@ -122,10 +125,8 @@ public class JMXQuery {
       out.print(ex.getMessage()+" connecting to "+object+" by URL "+url);
     }
 
-
     if(verbatim>=3)
       ex.printStackTrace(out);
-
   }
 
 
@@ -203,12 +204,22 @@ public class JMXQuery {
 
 
   private void execute() throws Exception{
-    Object attr = connection.getAttribute(new ObjectName(object), attribute);
+    Object objData;
+    Object attr;
+    if(attribute != null) {
+      attr = connection.getAttribute(new ObjectName(object), attribute);
+    }else {
+      String[] signature = new String[parameters.length];
+      Arrays.fill(signature, "java.lang.String");
+      attr = connection.invoke(new ObjectName(object), operation, parameters, signature);
+    }
+
     if(attr instanceof CompositeDataSupport){
       CompositeDataSupport cds = (CompositeDataSupport) attr;
       if(attribute_key==null)
         throw new ParseError("Attribute key is null for composed data "+object);
-      checkData = parseData(cds.get(attribute_key));
+      objData = cds.get(attribute_key);
+      checkData = parseData(objData);
     } else if (attr instanceof Set) {
       Set set = (Set) attr;
       checkData = set.size();
@@ -221,6 +232,11 @@ public class JMXQuery {
     } else if (attr instanceof Object[]) {
       Object[] objects = (Object[]) attr;
       checkData = Arrays.asList(objects).size();
+    } else if (attr instanceof String) {
+      String sTemp = (String) attr;
+
+      checkData = parseData(attr);
+      infoData = sTemp;
     } else{
       checkData = parseData(attr);
     }
@@ -236,17 +252,23 @@ public class JMXQuery {
         infoData = info_attr;
       }
     }
-
   }
 
-  private long parseData(Object o) {
 
+  private long parseData(Object o) {
     if (o instanceof Number) {
       return ((Number)o).longValue();
     }
     else if (o instanceof Boolean) {
       boolean b = ((Boolean)o).booleanValue();
       return b ? 1 : 0;
+    }
+    else if (o instanceof String) {
+      String sTemp = (String) o;
+      if (sTemp.startsWith("OK")) return RETURN_OK;
+      else if (sTemp.startsWith("WARN")) return RETURN_WARNING;
+      else if (sTemp.startsWith("ERROR")) return RETURN_CRITICAL;
+      else return RETURN_UNKNOWN;
     }
     else {
       return Long.parseLong(o.toString());
@@ -269,6 +291,12 @@ public class JMXQuery {
           this.object = args[++i];
         }else if(option.equals("-A")){
           this.attribute = args[++i];
+        }else if(option.equals("-Oper")){
+          this.operation = args[++i];
+        }else if(option.equals("-P")){
+          this.parameters = args[++i].split(delimiter, -1);
+        }else if(option.equals("-D")){
+          this.delimiter = args[++i];
         }else if(option.equals("-I")){
           this.info_attribute = args[++i];
         }else if(option.equals("-J")){
@@ -288,13 +316,24 @@ public class JMXQuery {
         }
       }
 
-      if(url==null || object==null || attribute==null)
-        throw new Exception("Required options not specified");
+      if (url==null) {
+        throw new Exception("Required options [URL] not specified!");
+      } else if (object==null) {
+        throw new Exception("Required options [Object] not specified!");
+      } else if (attribute==null && operation==null) {
+        throw new Exception("Required options [Attribute] OR [Operation] not specified!");
+      } else if (attribute!=null && operation!=null){
+        throw new Exception("Options [Attribute] and [Operation] specified! Only one is permitted");
+      }
+      if(operation!=null){
+        if(parameters == null){
+          parameters = new Object[]{};
+        }
+      }
 
     }catch(Exception e){
       throw new ParseError(e);
     }
-
   }
 
 
@@ -318,7 +357,4 @@ public class JMXQuery {
       }
     }
   }
-
-
-
 }
